@@ -12,6 +12,8 @@ Analyzed a disk image using Autopsy to identify artifacts, recover files, and do
 - Artifact Analysis
 - Evidence Recovery
 
+👉 [View Project](writeups/digital-forensics-investigation.md)
+
 ---
 
 ### 🛡️ SOC Alert Triage (TryHackMe)
@@ -21,6 +23,8 @@ Investigated phishing alerts, identified malicious indicators, classified true p
 - Alert Triage
 - IOC Analysis
 - Threat Classification
+
+👉 [View Project](writeups/create-soc-alert-triage.md)
 
 ---
 
