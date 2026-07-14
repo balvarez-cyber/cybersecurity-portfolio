@@ -4,9 +4,11 @@
 
 ## Overview
 
-This project focuses on improving the security and reliability of an existing Python Flask application through defensive programming techniques. After reviewing the application's source code, I identified several opportunities to improve input validation, exception handling, and application logging. These enhancements were implemented to better protect the application against invalid input and unexpected runtime conditions, thereby improving overall reliability.
+This project focuses on improving the security and reliability of an existing Python Flask application through defensive programming techniques. After reviewing the application's source code, I identified several opportunities to improve input validation, exception handling, and application logging. These enhancements were implemented to better protect the application against invalid input and unexpected runtime conditions while improving overall reliability.
 
-The application was updated by implementing assertions, input validation, structured logging, and exception handling to improve overall stability while preserving existing functionality. Automated testing and manual verification were then performed to confirm the application behaved as expected after the security improvements were implemented.
+The application was updated by implementing assertions, input validation, structured logging, and exception handling to improve application stability while preserving existing functionality. Automated testing and manual verification were performed to confirm the application behaved as expected after the security improvements were implemented.
+
+---
 
 ## Project Objectives
 
@@ -17,6 +19,8 @@ The primary goals of this project were to:
 - Validate user input before processing application requests.
 - Add structured logging to support troubleshooting and security monitoring.
 - Verify the security improvements through automated and manual testing.
+
+---
 
 ## Initial Assessment
 
@@ -31,6 +35,8 @@ The primary findings included:
 - Error handling could be improved to provide more graceful responses to invalid input.
 
 These findings established a clear roadmap for the security improvements implemented throughout the project.
+
+---
 
 ## Security Improvements
 
@@ -56,6 +62,8 @@ Python's logging module replaced console output with structured application logg
 
 By combining input validation, assertions, exception handling, and structured logging, the application became more resilient against invalid input while maintaining expected functionality for legitimate users.
 
+---
+
 ## Testing & Verification
 
 After implementing the security improvements, the application was tested using both automated and manual testing techniques to verify that the defensive programming controls functioned as intended.
@@ -66,26 +74,43 @@ The updated application was validated using **pytest** to verify that the defens
 
 ![Pytest Results](screenshots/defensive-programming-tests.png)
 
----
-
-**### Application Verification
+### Application Verification
 
 After implementing the security improvements, the Flask application was launched locally to confirm that the user interface, routing, and rental workflow continued to function correctly.
-**
-![Flask Application](screenshots/defensive-programming-app.png)**
 
----**
+![Flask Application](screenshots/defensive-programming-app.png)
 
 ### Structured Logging
 
 Application logging was configured to capture informational events, warnings, and errors generated during normal operation. The log provides an audit trail that supports troubleshooting, security monitoring, and operational visibility.
 
-
 ![Application Logging](screenshots/defensive-programming-logging.png)
-
 
 ### Defensive Programming Implementation
 
 The application was updated to validate user input, gracefully handle runtime exceptions, and record significant application events using Python's logging module. These changes improved application resilience while preserving existing functionality.
 
 ![Defensive Programming Code](screenshots/defensive-programming-code.png)
+
+---
+
+## Lessons Learned
+
+This project reinforced the importance of defensive programming in developing secure and reliable software. Implementing input validation, assertions, structured logging, and exception handling demonstrated how relatively small code changes can significantly improve an application's resilience against invalid input and unexpected runtime conditions. The project also highlighted the importance of automated testing to verify that security improvements preserve existing functionality while reducing the risk of introducing new defects.
+
+---
+
+## Skills Demonstrated
+
+- Python
+- Flask
+- Defensive Programming
+- Input Validation
+- Assertions
+- Exception Handling
+- Structured Logging
+- Application Logging
+- Pytest
+- Secure Coding Practices
+- Software Security Testing
+- Software Debugging
