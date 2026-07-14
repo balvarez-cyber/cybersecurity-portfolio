@@ -1,48 +1,55 @@
 # 🛡️ Cybersecurity Portfolio
 
-Welcome to my cybersecurity portfolio. This repository showcases hands-on security projects focused on **security operations, incident response, digital forensics, secure software development, and threat detection**. Each project demonstrates practical investigation techniques, defensive security practices, and documentation modeled after real-world cybersecurity workflows.
+Welcome to my cybersecurity portfolio. This repository showcases hands-on projects demonstrating practical experience in **security operations, incident response, digital forensics, secure software development, and threat detection**. Each project reflects a structured approach to investigating security events, implementing defensive security controls, and documenting technical findings using industry-standard tools and methodologies.
 
-As I continue completing my B.S. in Cybersecurity and Information Assurance at Western Governors University, I use this portfolio to document projects that strengthen my technical skills and demonstrate my ability to investigate, analyze, and remediate security issues.
+As I continue completing my Bachelor of Science in Cybersecurity and Information Assurance at Western Governors University, I use this portfolio to demonstrate the technical skills I continue to develop through coursework, cybersecurity labs, and real-world inspired investigations.
 
 ---
 
 # 🚀 Technical Skills
 
 ### Security Operations
-- SOC Alert Triage
+- Security Operations Center (SOC) Analysis
+- Alert Triage
 - Incident Response
-- Threat Detection & Analysis
-- Security Monitoring
+- Threat Hunting
 - MITRE ATT&CK Mapping
 - Indicator of Compromise (IOC) Analysis
+- Threat Classification
 
 ### Digital Forensics
-- Disk Image Analysis
 - Windows Artifact Analysis
-- Browser & Registry Forensics
+- Disk Image Analysis
 - Timeline Analysis
+- Browser Artifact Analysis
+- Evidence Collection
 - Chain of Custody
-- Evidence Documentation
+- Forensic Documentation
 
 ### Secure Software Development
 - Python
 - Flask
 - Defensive Programming
+- Secure Coding Practices
 - Input Validation
+- Assertions
 - Exception Handling
 - Structured Logging
 - Automated Testing (Pytest)
 
-### Security Tools
+---
+
+# 🛠 Tools & Platforms
 
 - Splunk
 - Elastic SIEM
 - Autopsy
 - Windows Event Viewer
-- TryHackMe
 - Python
 - Flask
+- Pytest
 - Git & GitHub
+- TryHackMe
 
 ---
 
@@ -50,120 +57,85 @@ As I continue completing my B.S. in Cybersecurity and Information Assurance at W
 
 ## 🛡 Secure Flask Application with Defensive Programming
 
-Improved the security and reliability of a Python Flask application by implementing secure coding practices including input validation, structured logging, assertions, exception handling, and automated testing.
+Improved the security and reliability of an existing Python Flask application by implementing secure coding techniques including assertions, structured logging, input validation, exception handling, and automated testing.
 
-**Key Skills**
+**Skills Demonstrated**
 
-- Defensive Programming
-- Secure Coding
 - Python
 - Flask
-- Pytest
+- Defensive Programming
+- Secure Coding
 - Application Logging
+- Pytest
 - Software Security Testing
 
-👉 **Project:**  
-`writeups/python-defensive-programming.md`
+👉 [View Project](writeups/python-defensive-programming.md)
 
 ---
 
 ## 🔎 Splunk SIEM Investigation: VPN Log Analysis
 
-Investigated VPN authentication logs using Splunk to identify suspicious login activity through log correlation, geographic analysis, and user-focused investigation.
+- Ingested and analyzed VPN authentication logs using Splunk.
+- Performed user-focused investigations and geographic filtering.
+- Identified suspicious login activity through log correlation.
+- Applied structured SIEM investigation methodology.
 
-**Key Skills**
-
-- Splunk
-- Log Analysis
-- Threat Hunting
-- User Behavior Analysis
-- SIEM Investigation
-
-👉 **Project:**  
-`writeups/splunk-vpn-investigation.md`
+👉 [View Project](writeups/splunk-vpn-investigation.md)
 
 ---
 
-## 🔎 Elastic SIEM VPN Investigation
+## 🔎 Elastic SIEM Investigation: VPN Log Analysis
 
-Investigated VPN authentication activity using Elastic SIEM to identify abnormal user behavior, suspicious IP addresses, and authentication anomalies.
+- Investigated VPN authentication activity using Elastic SIEM.
+- Performed KQL queries to identify suspicious user behavior.
+- Analyzed abnormal authentication patterns and IP activity.
+- Assessed potential security risks using event correlation.
 
-**Key Skills**
-
-- Elastic SIEM
-- KQL
-- Threat Hunting
-- Authentication Analysis
-- IOC Identification
-
-👉 **Project:**  
-`writeups/elastic-siem-vpn-investigation.md`
+👉 [View Project](writeups/elastic-siem-vpn-investigation.md)
 
 ---
 
 ## 🚨 EDR Alert Investigation
 
-Performed a simulated endpoint investigation involving malicious macro execution, PowerShell activity, and credential dumping behavior. Analyzed process trees and mapped activity to the MITRE ATT&CK framework.
+- Investigated a simulated endpoint attack involving malicious macro execution.
+- Analyzed PowerShell activity, process chains, and credential dumping behavior.
+- Applied MITRE ATT&CK techniques to classify attacker activity.
+- Distinguished malicious behavior from normal system processes.
 
-**Key Skills**
-
-- EDR
-- Process Analysis
-- Incident Response
-- MITRE ATT&CK
-- Threat Detection
-
-👉 **Project:**  
-`writeups/edr-alert-investigation.md`
+👉 [View Project](writeups/edr-alert-investigation.md)
 
 ---
 
-## 🔐 CryptoMiner SIEM Investigation
+## 🔐 SIEM Investigation: CryptoMiner Detection
 
-Investigated unauthorized cryptocurrency mining activity by analyzing alerts, process execution, and indicators of compromise before recommending containment actions.
+- Investigated unauthorized cryptocurrency mining activity.
+- Analyzed process execution and security alerts.
+- Identified indicators of compromise (IOCs).
+- Recommended containment and remediation actions.
 
-**Key Skills**
-
-- SIEM Investigation
-- IOC Analysis
-- Malware Investigation
-- Security Monitoring
-
-👉 **Project:**  
-`writeups/siem-investigation.md`
+👉 [View Project](writeups/siem-investigation.md)
 
 ---
 
 ## 🧪 Digital Forensics Investigation
 
-Performed forensic analysis of a Windows 11 disk image using Autopsy to recover artifacts, examine user activity, and identify potential evidence of malicious behavior.
+- Performed forensic analysis of a Windows 11 disk image using Autopsy.
+- Examined browser artifacts, event logs, and deleted files.
+- Correlated user activity to identify potential evidence of malicious behavior.
+- Documented forensic findings and supporting evidence.
 
-**Key Skills**
-
-- Autopsy
-- Windows Forensics
-- Timeline Analysis
-- Evidence Collection
-- Digital Investigations
-
-👉 **Project:**  
-`writeups/autopsy-digital-forensics.md`
+👉 [View Project](writeups/autopsy-digital-forensics.md)
 
 ---
 
-## 🎣 SOC Phishing Investigation
+## 🎣 SOC Alert Triage: Phishing Investigation
 
-Performed phishing triage by analyzing email indicators, validating malicious artifacts, and documenting recommended response actions.
+- Investigated phishing alerts within a simulated SOC environment.
+- Identified spoofed domains and malicious indicators.
+- Validated alerts as true positives.
+- Documented findings and recommended response actions.
 
-**Key Skills**
-
-- Email Analysis
-- IOC Validation
-- Threat Classification
-- SOC Investigation
-
-👉 **Project:**  
-`writeups/soc-alert-triage.md`
+👉 [View Project](writeups/soc-alert-triage.md)
 
 ---
 
@@ -173,10 +145,10 @@ This portfolio demonstrates my ability to:
 
 - Investigate cybersecurity incidents using structured methodologies.
 - Analyze endpoint, authentication, and log-based security events.
-- Apply defensive programming techniques to improve application security.
 - Perform digital forensic investigations using industry-standard tools.
-- Document technical findings in a clear and professional manner.
-- Translate security data into actionable recommendations.
+- Implement secure coding practices using defensive programming techniques.
+- Develop clear and professional technical documentation.
+- Translate technical findings into actionable security recommendations.
 
 ---
 
@@ -186,32 +158,26 @@ I'm currently expanding my experience in:
 
 - Incident Response
 - Digital Forensics
+- Threat Hunting
+- Secure Software Development
 - Detection Engineering
 - Cloud Security
-- Secure Software Development
-- Threat Hunting
 - Security Automation with Python
 
 ---
 
-# 🛠 Technologies
+# 📚 Current Learning
 
-**Languages**
+I'm currently pursuing:
 
-Python • SQL • Bash (basic)
-
-**Security**
-
-Splunk • Elastic SIEM • Autopsy • Windows Event Logs • MITRE ATT&CK
-
-**Development**
-
-Flask • Pytest • Git • GitHub
+- B.S. Cybersecurity and Information Assurance (Western Governors University)
+- Certified Cloud Security Professional (CCSP)
+- CompTIA PenTest+
 
 ---
 
-## 👤 About Me
+# 👤 About Me
 
-I'm a cybersecurity professional with experience in physical security, incident response, digital investigations, and software security. My goal is to continue building hands-on technical experience while expanding into Incident Response, Digital Forensics, Security Engineering, and Cloud Security.
+I'm a cybersecurity professional with experience in physical security operations, incident response, digital investigations, and secure software development. My goal is to continue building hands-on technical experience while growing into roles focused on Incident Response, Digital Forensics, Security Engineering, and Cloud Security.
 
-This portfolio continues to grow as I complete new projects, security labs, certifications, and real-world investigations.
+This portfolio continues to evolve as I complete new projects, security labs, certifications, and real-world investigations.
