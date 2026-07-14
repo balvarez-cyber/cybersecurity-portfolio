@@ -4,20 +4,19 @@
 
 ## Overview
 
-This project focused on improving the security posture of an existing Python Flask application by remediating multiple application security vulnerabilities. The remediation included replacing hardcoded secrets with environment variables, implementing PBKDF2-SHA256 password hashing, enforcing API key authentication, introducing role-based access control (RBAC), and validating the implementation through automated security testing.
+This project focused on improving the security posture of an existing Python Flask application by remediating several common application security vulnerabilities. The application originally contained hardcoded secrets, plaintext password storage, missing API authentication, and insufficient authorization controls that could allow unauthorized access to sensitive functionality.
 
-These improvements strengthened the application's authentication and authorization mechanisms while reducing the risk of credential exposure, unauthorized access, and insecure application configuration.
+The remediation introduced secure secret management using environment variables, PBKDF2-SHA256 password hashing, API authentication with Bearer tokens, and role-based access control (RBAC). Automated security tests were then executed to verify that each security control functioned as intended.
 
 ---
 
 # Project Objectives
 
-The primary objectives of this project were to:
+The primary goals of this project were to:
 
-- Replace hardcoded secrets with secure configuration management.
-- Eliminate plaintext password storage.
-- Implement secure password hashing using PBKDF2-SHA256.
-- Require API authentication before accessing protected resources.
+- Eliminate hardcoded secrets from the application.
+- Replace plaintext password storage with secure password hashing.
+- Implement API authentication for protected endpoints.
 - Enforce role-based authorization using the principle of least privilege.
 - Validate each security control through automated testing.
 
@@ -25,15 +24,15 @@ The primary objectives of this project were to:
 
 # Initial Assessment
 
-Before implementing any changes, I reviewed the application's source code to identify security weaknesses that could expose sensitive information or allow unauthorized access.
+A review of the application's source code identified several security weaknesses that could expose sensitive information or allow unauthorized access.
 
-The review identified several vulnerabilities:
+The primary findings included:
 
-- Sensitive application secrets were hardcoded directly in the source code.
+- Sensitive application secrets were hardcoded directly within the source code.
 - User passwords were stored in plaintext.
-- Protected API endpoints lacked authentication.
-- Authorization checks did not properly restrict user permissions.
-- Security controls had limited automated validation.
+- Protected API endpoints could be accessed without authentication.
+- Administrative resources lacked proper authorization checks.
+- Security controls required automated validation to verify successful remediation.
 
 These findings established the remediation plan implemented throughout the project.
 
@@ -43,79 +42,69 @@ These findings established the remediation plan implemented throughout the proje
 
 ## Secure Secrets Management
 
-Hardcoded application secrets were replaced with environment variables to prevent sensitive credentials from being stored directly within the application's source code. Secure random values are generated when environment variables are unavailable, allowing the application to operate safely during development without relying on predictable default credentials.
+Hardcoded application secrets were replaced with environment variables to prevent sensitive credentials from being stored directly in the application's source code. Secure random values are generated when environment variables are unavailable, improving the security of development environments while supporting safer configuration management.
 
-> Screenshot:
-> Secure Secret Management Using Environment Variables
+![Secure Secrets Management](../screenshots/application-security-secrets-management.png)
 
 ---
 
-## Password Security
+## Secure Password Hashing
 
-Plaintext password storage was replaced with PBKDF2-SHA256 password hashing. User credentials are now stored as password hashes rather than plaintext, significantly reducing the risk of credential exposure if the user database is compromised.
+Plaintext password storage was replaced with PBKDF2-SHA256 password hashing using Werkzeug's `generate_password_hash()` function. Each user's password is securely hashed before storage, ensuring that plaintext credentials are never retained by the application. This approach significantly reduces the impact of a database compromise by protecting stored credentials with a one-way cryptographic hash.
 
-> Screenshot:
-> PBKDF2-SHA256 Password Hashing Implementation
+![Password Hash Generation](../screenshots/application-security-password-hash-generation.png)
 
 ---
 
 ## Secure Password Verification
 
-Authentication was updated to verify user credentials using password hash verification instead of direct plaintext password comparison. This allows the application to authenticate users without storing or exposing their original passwords.
+User authentication was updated to verify submitted credentials using `check_password_hash()` instead of comparing plaintext passwords. This allows the application to authenticate users without storing or exposing the original password while rejecting invalid credentials with an appropriate **401 Unauthorized** response.
 
-> Screenshot:
-> Secure Password Verification Using check_password_hash()
+![Password Verification](../screenshots/application-security-password-verification.png)
 
 ---
 
 ## API Authentication
 
-Protected API endpoints now require a valid Bearer token before granting access. Requests containing missing or invalid API keys are rejected, preventing unauthorized users from accessing protected resources.
+Protected API endpoints now require a valid Bearer token before granting access. Requests without a valid API key are rejected, preventing unauthenticated users from accessing protected application resources.
 
-> Screenshot:
-> Bearer Token Authentication
+![API Authentication](../screenshots/application-security-api-authentication.png)
 
 ---
 
 ## Role-Based Access Control
 
-Role-based access control (RBAC) was implemented to enforce the principle of least privilege. Administrative endpoints now require administrator privileges, preventing lower-privileged users from accessing restricted functionality.
+Role-based access control (RBAC) was implemented to enforce the principle of least privilege. Even with a valid API key, users are restricted to resources appropriate for their assigned role. Administrative endpoints now return **403 Forbidden** when accessed by non-administrative users.
 
-> Screenshot:
-> Role-Based Authorization Implementation
+![Role-Based Access Control](../screenshots/application-security-rbac.png)
 
 ---
 
 # Testing & Verification
 
-After implementing the security improvements, the application was validated using automated security tests to confirm each remediation functioned as expected.
+After implementing the security improvements, the application was validated using automated tests written with the **pytest** framework. Each test verifies a specific security remediation to confirm the implemented controls behave as expected.
 
-## Automated Security Testing
+## Password Hash Validation
 
-Automated tests were executed using **pytest** to verify that each security control operated correctly after remediation.
+Automated testing confirmed that plaintext password fields were successfully removed from the application. Each user record now contains a password hash rather than the original password, ensuring sensitive credentials are no longer stored in plaintext.
 
-> Screenshot:
-> Successful Pytest Execution
+![Password Hash Validation](../screenshots/application-security-password-hashing.png)
 
 ---
 
-## Security Validation
+## Automated Security Validation
 
-Individual test cases verified:
+The completed implementation was validated through automated security testing. The test suite verified secure secret management, password hashing, API authentication, and role-based authorization. All tests completed successfully, confirming that each remediation functioned as intended.
 
-- Hardcoded secrets were successfully removed.
-- Password hashing replaced plaintext password storage.
-- API authentication rejected unauthorized requests.
-- Role-based authorization enforced least privilege.
-
-> Screenshot:
-> Security Test Results
+![Security Test Results](../screenshots/application-security-test-results.png)
 
 ---
 
 # Lessons Learned
 
-This project demonstrated how multiple application security vulnerabilities can be mitigated through secure coding practices. Replacing hardcoded secrets, protecting passwords with modern hashing algorithms, enforcing authentication and authorization, and validating functionality through automated testing significantly improved the application's overall security posture.
+This project demonstrated how multiple application security vulnerabilities can be mitigated through secure coding practices and layered security controls. Replacing hardcoded secrets, protecting credentials with PBKDF2-SHA256 password hashing, enforcing API authentication, and implementing role-based authorization significantly strengthened the application's overall security posture.
+
+The project also reinforced the importance of validating security improvements through automated testing. Security controls should not only be implemented but also verified to ensure they continue functioning correctly as an application evolves.
 
 ---
 
@@ -124,13 +113,16 @@ This project demonstrated how multiple application security vulnerabilities can 
 - Python
 - Flask
 - Application Security
+- Secure Coding
 - Secrets Management
 - Environment Variables
 - PBKDF2-SHA256
 - Password Hashing
 - Password Verification
 - API Authentication
+- Bearer Token Authentication
 - Role-Based Access Control (RBAC)
-- Secure Coding Practices
-- Automated Testing (Pytest)
+- Authentication & Authorization
+- Automated Security Testing
+- Pytest
 - Software Security Testing
