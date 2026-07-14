@@ -62,38 +62,30 @@ After implementing the security improvements, the application was tested using b
 
 ### Automated Testing
 
-Automated tests were executed using **pytest** to verify that the application continued to operate correctly after the code changes were implemented. The test suite confirmed that expected functionality was preserved while validating the newly added defensive programming controls.
+The updated application was validated using **pytest** to verify that the defensive programming enhancements did not introduce regressions. All six automated tests passed successfully, confirming that input validation, exception handling, and application behavior continued to function as expected.
 
-> **Screenshot:** Automated test results showing all tests passed.
-
-![Pytest Results](../screenshots/defensive-programming-tests.png)
+![Pytest Results](screenshots/defensive-programming-tests.png)
 
 ---
 
-### Application Verification
+**### Application Verification
 
-The updated Flask application was launched locally to verify that the user interface, routing, and application functionality continued to operate correctly after the security improvements were implemented.
+After implementing the security improvements, the Flask application was launched locally to confirm that the user interface, routing, and rental workflow continued to function correctly.
+**
+![Flask Application](screenshots/defensive-programming-app.png)**
 
-> **Screenshot:** Flask application running successfully.
+---**
 
-![Flask Application](../screenshots/defensive-programming-app.png)
+### Structured Logging
 
----
+Application logging was configured to capture informational events, warnings, and errors generated during normal operation. The log provides an audit trail that supports troubleshooting, security monitoring, and operational visibility.
 
-### Application Logging
 
-Structured logging was verified by reviewing the troubleshooting log generated during application execution. Informational events, warnings, and errors were successfully recorded, providing an audit trail that supports troubleshooting and security monitoring.
+![Application Logging](screenshots/defensive-programming-logging.png)
 
-> **Screenshot:** Application log demonstrating structured logging.
 
-![Application Logging](../screenshots/defensive-programming-logging.png)
+### Defensive Programming Implementation
 
----
+The application was updated to validate user input, gracefully handle runtime exceptions, and record significant application events using Python's logging module. These changes improved application resilience while preserving existing functionality.
 
-### Code Example
-
-The following example highlights one of the defensive programming improvements implemented during the project, including input validation, exception handling, assertions, or structured logging.
-
-> **Screenshot:** Example of defensive programming within the application.
-
-![Defensive Programming Code](../screenshots/defensive-programming-code.png)
+![Defensive Programming Code](screenshots/defensive-programming-code.png)
