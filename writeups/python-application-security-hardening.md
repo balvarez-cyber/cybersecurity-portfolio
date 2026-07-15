@@ -4,9 +4,11 @@
 
 ## Overview
 
-This project focused on improving the security posture of an existing Python Flask application by remediating several common application security vulnerabilities. The application originally contained hardcoded secrets, plaintext password storage, missing API authentication, and insufficient authorization controls that could allow unauthorized access to sensitive functionality.
+This project focused on hardening an existing Python Flask application by remediating several common application security weaknesses. The original application contained hardcoded configuration secrets, plaintext password records, missing API authentication, and authorization logic that granted access without verifying a user’s role.
 
-The remediation introduced secure secret management using environment variables, PBKDF2-SHA256 password hashing, API authentication with Bearer tokens, and role-based access control (RBAC). Automated security tests were then executed to verify that each security control functioned as intended.
+The remediation introduced environment-based secrets management, PBKDF2-SHA256 password hashing through Werkzeug, Bearer-token authentication, and role-based access control. I also completed an additional hardening pass that added parameterized SQL queries, safer error handling, input validation, protection for destructive endpoints, filtering of sensitive data, and disabled Flask debug mode.
+
+Automated tests were executed after the changes to confirm that the required controls still functioned correctly and that the additional hardening did not introduce regressions.
 
 ---
 
@@ -14,97 +16,611 @@ The remediation introduced secure secret management using environment variables,
 
 The primary goals of this project were to:
 
-- Eliminate hardcoded secrets from the application.
-- Replace plaintext password storage with secure password hashing.
-- Implement API authentication for protected endpoints.
+- Move application configuration secrets out of the source code.
+- Replace plaintext password records with password hashes.
+- Verify passwords without directly comparing plaintext credentials.
+- Require authentication for protected API endpoints.
 - Enforce role-based authorization using the principle of least privilege.
-- Validate each security control through automated testing.
+- Return the correct HTTP response when authentication or authorization fails.
+- Validate each required security control through automated testing.
+- Complete an additional hardening pass to address obvious remaining risks.
 
 ---
 
 # Initial Assessment
 
-A review of the application's source code identified several security weaknesses that could expose sensitive information or allow unauthorized access.
+A review of the application source code identified several security weaknesses that could expose credentials, allow unauthorized access, or reveal sensitive information.
 
 The primary findings included:
 
-- Sensitive application secrets were hardcoded directly within the source code.
-- User passwords were stored in plaintext.
-- Protected API endpoints could be accessed without authentication.
-- Administrative resources lacked proper authorization checks.
-- Security controls required automated validation to verify successful remediation.
+- Application secrets were hardcoded directly in the source code.
+- User passwords were stored in plaintext records.
+- The API authentication function did not validate requests.
+- The authorization function always returned `True`.
+- Administrative functionality could be accessed without verifying the user’s role.
+- SQL queries were built through string concatenation.
+- Some API responses exposed more information than necessary.
+- Internal exception details could be returned to clients.
+- Destructive and data-creation endpoints lacked consistent authentication.
+- Flask debug mode was enabled.
 
-These findings established the remediation plan implemented throughout the project.
+These findings established the remediation and hardening plan implemented throughout the project.
 
 ---
 
 # Security Improvements
 
+The following sections show the original code, the secured implementation, the threat addressed, and the specific attack path or failure that was closed.
+
+---
+
 ## Secure Secrets Management
 
-Hardcoded application secrets were replaced with environment variables to prevent sensitive credentials from being stored directly in the application's source code. Secure random values are generated when environment variables are unavailable, improving the security of development environments while supporting safer configuration management.
+### Purpose
 
-![Secure Secrets Management](../screenshots/application-security-secrets-management.png)
+Application configuration secrets were moved out of the source code and loaded from environment variables. Secure random values are generated when environment variables are not available.
+
+### Before
+
+```python
+app.secret_key = 'supersecretkeyforflasksessions'
+API_KEY = "sk_live_abc123xyz789secretkey"
+DB_USER = "admin"
+DB_PASSWORD = "password123"
+```
+
+### After
+
+```python
+app.secret_key = os.environ.get(
+    'FLASK_SECRET_KEY',
+    secrets.token_hex(32)
+)
+
+API_KEY = os.environ.get(
+    'API_KEY',
+    secrets.token_urlsafe(32)
+)
+
+DB_USER = os.environ.get(
+    'DB_USER',
+    'rental_app_user'
+)
+
+DB_PASSWORD = os.environ.get(
+    'DB_PASSWORD',
+    secrets.token_urlsafe(32)
+)
+```
+
+The user API keys were also moved to environment-backed values:
+
+```python
+"api_key": os.environ.get(
+    "ADMIN_API_KEY",
+    secrets.token_urlsafe(32)
+)
+```
+
+### Threat Prevented
+
+Hardcoded-credential leakage through source code, version control, backups, or accidental repository exposure.
+
+### Attack Path Closed
+
+Before this change, anyone who gained access to the source code could immediately read the Flask secret key, API key, and database credentials. The updated implementation removes those configuration secrets from the codebase and allows them to be changed without modifying the application.
 
 ---
 
 ## Secure Password Hashing
 
-Plaintext password storage was replaced with PBKDF2-SHA256 password hashing using Werkzeug's `generate_password_hash()` function. Each user's password is securely hashed before storage, ensuring that plaintext credentials are never retained by the application. This approach significantly reduces the impact of a database compromise by protecting stored credentials with a one-way cryptographic hash.
+### Purpose
 
-![Password Hash Generation](../screenshots/application-security-password-hash-generation.png)
+Plaintext password records were replaced with PBKDF2-SHA256 password hashes using Werkzeug’s `generate_password_hash()` function.
+
+### Before
+
+```python
+USERS_DB = {
+    "admin": {
+        "password": "admin123",
+        "role": "admin"
+    },
+    "alice": {
+        "password": "alice456",
+        "role": "user"
+    }
+}
+```
+
+### After
+
+```python
+USERS_DB = {
+    "admin": {
+        "password_hash": generate_password_hash(
+            "admin123",
+            method="pbkdf2:sha256"
+        ),
+        "role": "admin"
+    },
+    "alice": {
+        "password_hash": generate_password_hash(
+            "alice456",
+            method="pbkdf2:sha256"
+        ),
+        "role": "user"
+    }
+}
+```
+
+### Threat Prevented
+
+Immediate credential disclosure, rainbow-table attacks, and efficient offline password cracking against unsalted plaintext password records.
+
+### Attack Path Closed
+
+Before this change, anyone who obtained the user records could immediately read every password. The updated application stores password hashes in the active user records. PBKDF2 performs repeated hashing and includes a salt, increasing the work required to test password guesses if the records are compromised.
 
 ---
 
 ## Secure Password Verification
 
-User authentication was updated to verify submitted credentials using `check_password_hash()` instead of comparing plaintext passwords. This allows the application to authenticate users without storing or exposing the original password while rejecting invalid credentials with an appropriate **401 Unauthorized** response.
+### Purpose
 
-![Password Verification](../screenshots/application-security-password-verification.png)
+Authentication was updated to verify submitted passwords against stored hashes instead of directly comparing plaintext values.
+
+### Before
+
+```python
+if USERS_DB[username]['password'] == password:
+    return jsonify({
+        "status": "success",
+        "message": "Authentication successful"
+    })
+```
+
+### After
+
+```python
+if check_password_hash(
+    USERS_DB[username]['password_hash'],
+    password
+):
+    return jsonify({
+        "status": "success",
+        "message": "Authentication successful",
+        "api_key": USERS_DB[username]['api_key']
+    })
+```
+
+The web login route uses the same verification method:
+
+```python
+if (
+    username in USERS_DB
+    and check_password_hash(
+        USERS_DB[username]['password_hash'],
+        password
+    )
+):
+    flash(f"Welcome back, {username}!", "success")
+```
+
+### Threat Prevented
+
+Plaintext credential exposure and insecure direct password comparisons during authentication.
+
+### Attack Path Closed
+
+Before this change, the application depended on a plaintext password field. The updated implementation verifies whether the submitted password matches the stored hash without retrieving or exposing the original password.
 
 ---
 
-## API Authentication
+## Bearer-Token API Authentication
 
-Protected API endpoints now require a valid Bearer token before granting access. Requests without a valid API key are rejected, preventing unauthenticated users from accessing protected application resources.
+### Purpose
 
-![API Authentication](../screenshots/application-security-api-authentication.png)
+Protected API endpoints were updated to extract and validate an API key from the HTTP `Authorization` header.
+
+### Before
+
+```python
+def require_api_key():
+    return None
+```
+
+The original function did not validate any credentials.
+
+### After
+
+```python
+def require_api_key():
+    auth_header = request.headers.get(
+        "Authorization",
+        ""
+    )
+
+    if not auth_header.startswith("Bearer "):
+        return None
+
+    api_key = auth_header.replace(
+        "Bearer ",
+        "",
+        1
+    ).strip()
+
+    for username, user_data in USERS_DB.items():
+        stored_api_key = user_data.get(
+            "api_key",
+            ""
+        )
+
+        if hmac.compare_digest(
+            stored_api_key,
+            api_key
+        ):
+            return username
+
+    return None
+```
+
+### Threat Prevented
+
+Unauthorized access to protected API resources and timing-based comparison weaknesses during API-key validation.
+
+### Attack Path Closed
+
+Before this change, the authentication function did not identify or validate the requester. The updated function requires the expected `Bearer <api_key>` format, compares the submitted key against stored values, and returns the associated username only when the key is valid.
 
 ---
 
 ## Role-Based Access Control
 
-Role-based access control (RBAC) was implemented to enforce the principle of least privilege. Even with a valid API key, users are restricted to resources appropriate for their assigned role. Administrative endpoints now return **403 Forbidden** when accessed by non-administrative users.
+### Purpose
 
-![Role-Based Access Control](../screenshots/application-security-rbac.png)
+A role authorization helper was implemented to enforce the principle of least privilege.
+
+### Before
+
+```python
+def require_role(username, required_role):
+    return True
+```
+
+The original implementation authorized every request regardless of the user’s assigned role.
+
+### After
+
+```python
+def require_role(username, required_role):
+    if username not in USERS_DB:
+        return False
+
+    user_role = USERS_DB[username]['role']
+
+    role_hierarchy = {
+        "guest": 1,
+        "user": 2,
+        "admin": 3
+    }
+
+    return (
+        role_hierarchy.get(user_role, 0)
+        >= role_hierarchy.get(required_role, 0)
+    )
+```
+
+### Threat Prevented
+
+Privilege escalation and unauthorized access to administrative functionality.
+
+### Attack Path Closed
+
+Before this change, a guest or regular user could pass the authorization check because the function always returned `True`. The new role hierarchy verifies that the authenticated user has a privilege level equal to or greater than the level required by the endpoint.
 
 ---
 
-# Testing & Verification
+## Authentication and Authorization Enforcement
 
-After implementing the security improvements, the application was validated using automated tests written with the **pytest** framework. Each test verifies a specific security remediation to confirm the implemented controls behave as expected.
+### Purpose
+
+Protected administrative routes were updated to distinguish between authentication failure and authorization failure.
+
+### After
+
+```python
+user = require_api_key()
+
+if not user:
+    return jsonify({
+        "status": "error",
+        "message": "Authentication required"
+    }), 401
+
+if not require_role(user, "admin"):
+    return jsonify({
+        "status": "error",
+        "message": "Admin role required"
+    }), 403
+```
+
+### Threat Prevented
+
+Unauthenticated API access and privilege escalation by authenticated users who lack administrative permissions.
+
+### Attack Path Closed
+
+A request without valid credentials is stopped before the application processes the protected resource. A requester who supplies a valid token but lacks the required role is also denied access.
+
+The two outcomes are intentionally different:
+
+- Missing or invalid token: `401 Unauthorized`
+- Valid token with insufficient permissions: `403 Forbidden`
+
+---
+
+# Additional Hardening
+
+After completing the four required remediations, I completed an additional pass to address obvious remaining weaknesses.
+
+## Parameterized SQL Queries
+
+### Before
+
+```python
+query = (
+    "SELECT * FROM users WHERE username = '"
+    + username
+    + "'"
+)
+```
+
+### After
+
+```python
+query = (
+    "SELECT id, username, role "
+    "FROM users WHERE username = ?"
+)
+
+cursor.execute(query, (username,))
+```
+
+### Threat Prevented
+
+SQL injection.
+
+User input is now supplied separately from the SQL statement instead of being joined directly into the query.
+
+---
+
+## Safer Error Handling
+
+### Before
+
+```python
+except Exception as e:
+    return jsonify({
+        "status": "error",
+        "message": str(e)
+    }), 500
+```
+
+### After
+
+```python
+except sqlite3.Error:
+    app.logger.exception(
+        "Database error while retrieving user data"
+    )
+
+    return jsonify({
+        "status": "error",
+        "message": "Unable to retrieve user data"
+    }), 500
+```
+
+### Threat Prevented
+
+Disclosure of internal application details.
+
+Detailed diagnostic information is logged on the server, while the client receives a generic error message.
+
+---
+
+## Sensitive Data Filtering
+
+Rental records originally included Social Security numbers that could be returned through the API. The hardened endpoint removes the `ssn` field before constructing the response.
+
+```python
+sanitized_records = [
+    {
+        key: value
+        for key, value in record.items()
+        if key != "ssn"
+    }
+    for record in records
+]
+```
+
+### Threat Prevented
+
+Exposure of personally identifiable information.
+
+---
+
+## Input and Boundary Validation
+
+Rental creation now verifies that:
+
+- The request contains valid JSON.
+- The equipment name is approved.
+- The rental duration is an integer.
+- Boolean values are not accepted as integers.
+- The duration is between 1 and 365 days.
+- Regular users cannot create records for another user.
+
+```python
+if (
+    not isinstance(days, int)
+    or isinstance(days, bool)
+    or days <= 0
+    or days > 365
+):
+    return jsonify({
+        "status": "error",
+        "message": (
+            "Days must be an integer "
+            "between 1 and 365"
+        )
+    }), 400
+```
+
+### Threat Prevented
+
+Invalid calculations, malformed records, unauthorized record creation, and unexpected runtime behavior.
+
+---
+
+## Protection of Destructive Operations
+
+The user-deletion endpoint now requires both a valid API key and the administrator role.
+
+```python
+user = require_api_key()
+
+if not user:
+    return jsonify({
+        "status": "error",
+        "message": "Authentication required"
+    }), 401
+
+if not require_role(user, "admin"):
+    return jsonify({
+        "status": "error",
+        "message": "Admin role required"
+    }), 403
+```
+
+### Threat Prevented
+
+Unauthorized account deletion.
+
+---
+
+## Production Debugging Configuration
+
+### Before
+
+```python
+app.run(debug=True, port=5000)
+```
+
+### After
+
+```python
+app.run(debug=False, port=5000)
+```
+
+### Threat Prevented
+
+Exposure of sensitive debugging information and misuse of the Werkzeug interactive debugger.
+
+---
+
+# Testing and Verification
+
+After the security controls and additional hardening changes were implemented, the application was validated using automated tests written with `pytest`.
+
+## Concrete Authentication Proof
+
+A request to a protected endpoint without an API token was rejected with:
+
+```text
+401 Unauthorized
+```
+
+This confirmed that unauthenticated requests could no longer access the protected endpoint.
+
+## Concrete Authorization Proof
+
+A request containing a valid regular-user token was sent to an administrator endpoint. The request was rejected with:
+
+```text
+403 Forbidden
+```
+
+This confirmed that successful authentication alone was not enough to access administrative functionality and that role-based access control prevented privilege escalation.
 
 ## Password Hash Validation
 
-Automated testing confirmed that plaintext password fields were successfully removed from the application. Each user record now contains a password hash rather than the original password, ensuring sensitive credentials are no longer stored in plaintext.
+Automated testing confirmed that active user records contained `password_hash` fields instead of plaintext `password` fields.
 
 ![Password Hash Validation](../screenshots/application-security-password-hashing.png)
 
----
-
 ## Automated Security Validation
 
-The completed implementation was validated through automated security testing. The test suite verified secure secret management, password hashing, API authentication, and role-based authorization. All tests completed successfully, confirming that each remediation functioned as intended.
+The test suite verified:
+
+- Secure Flask secret-key configuration
+- Removal of active plaintext password fields
+- Authentication enforcement on a protected endpoint
+- Authorization enforcement on an administrative endpoint
+
+All four required tests passed after the additional hardening changes, confirming that the new controls did not break the original remediations.
 
 ![Security Test Results](../screenshots/application-security-test-results.png)
 
 ---
 
+# Security Impact
+
+This project closed several specific attack paths instead of only adding security features.
+
+- Environment-based configuration reduced the risk of hardcoded-secret leakage.
+- PBKDF2-SHA256 protected active password records against immediate credential disclosure.
+- Bearer-token validation blocked unauthenticated API access.
+- Role-based authorization blocked privilege escalation.
+- Parameterized queries mitigated SQL injection.
+- Generic client errors reduced information disclosure.
+- Sensitive-data filtering prevented SSNs from being returned by the rental endpoint.
+- Authentication and authorization were added to destructive and data-creation operations.
+- Input validation prevented malformed and unauthorized rental records.
+- Disabling debug mode reduced exposure of development-only debugging functionality.
+
+Together, these changes created multiple layers of protection while preserving the application’s required functionality.
+
+---
+
+# Out of Scope and Future Improvements
+
+This project was hardened for portfolio and educational purposes, but it is not presented as a complete production identity platform.
+
+Future improvements would include:
+
+- Replacing demonstration seed passwords with a secure registration or migration process
+- Storing users and credentials in a persistent database
+- Hashing or otherwise securely managing API keys at rest
+- Implementing API-key expiration and rotation
+- Adding rate limiting and account lockout controls
+- Implementing multi-factor authentication
+- Using OAuth 2.0, OpenID Connect, or short-lived signed access tokens
+- Adding CSRF protection to browser-based forms
+- Enforcing HTTPS through the deployment environment
+- Centralizing audit logs and security alerts
+- Adding dependency scanning and continuous security testing to a CI/CD pipeline
+- Expanding integration tests for malformed requests, authorization boundaries, and failure conditions
+
+---
+
 # Lessons Learned
 
-This project demonstrated how multiple application security vulnerabilities can be mitigated through secure coding practices and layered security controls. Replacing hardcoded secrets, protecting credentials with PBKDF2-SHA256 password hashing, enforcing API authentication, and implementing role-based authorization significantly strengthened the application's overall security posture.
+This project demonstrated the difference between authentication and authorization. Authentication establishes who is making the request, while authorization determines what that authenticated user is permitted to do. Returning `401` for missing credentials and `403` for insufficient permissions made that distinction clear in both the code and the tests.
 
-The project also reinforced the importance of validating security improvements through automated testing. Security controls should not only be implemented but also verified to ensure they continue functioning correctly as an application evolves.
+The project also reinforced the importance of layered controls. Password hashing protects stored credentials, but it does not replace API authentication. Authentication identifies the requester, but it does not replace authorization. Role checks protect administrative functions, while input validation, safer SQL queries, and controlled error responses address separate attack paths.
+
+The additional hardening pass also reinforced the value of regression testing. All four required tests continued to pass after the broader security changes were implemented.
 
 ---
 
@@ -120,9 +636,17 @@ The project also reinforced the importance of validating security improvements t
 - Password Hashing
 - Password Verification
 - API Authentication
-- Bearer Token Authentication
-- Role-Based Access Control (RBAC)
-- Authentication & Authorization
+- Bearer-Token Authentication
+- Constant-Time Secret Comparison
+- Role-Based Access Control
+- Least Privilege
+- HTTP 401 and 403 Response Handling
+- SQL Injection Mitigation
+- Parameterized Queries
+- Input and Boundary Validation
+- Sensitive Data Filtering
+- Secure Exception Handling
 - Automated Security Testing
 - Pytest
-- Software Security Testing
+- Regression Testing
+- Technical Security Documentation
