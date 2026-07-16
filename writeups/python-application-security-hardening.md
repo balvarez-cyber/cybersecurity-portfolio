@@ -531,44 +531,43 @@ Exposure of sensitive debugging information and misuse of the Werkzeug interacti
 
 # Testing and Verification
 
-After the security controls and additional hardening changes were implemented, the application was validated using automated tests written with `pytest`.
+After implementing the security controls and completing the additional hardening changes, the application was validated using automated tests written with the `pytest` framework.
 
-## Concrete Authentication Proof
+## Authentication and Authorization Validation
 
-A request to a protected endpoint without an API token was rejected with:
+Automated testing confirmed that the implemented security controls behaved as expected.
+
+A request made to a protected endpoint without a valid Bearer token was rejected with:
 
 ```text
 401 Unauthorized
 ```
 
-This confirmed that unauthenticated requests could no longer access the protected endpoint.
+This verified that unauthenticated requests could no longer access protected API resources.
 
-## Concrete Authorization Proof
-
-A request containing a valid regular-user token was sent to an administrator endpoint. The request was rejected with:
+A second request using a valid API token assigned to a non-administrative user attempted to access an administrator-only endpoint. The request was rejected with:
 
 ```text
 403 Forbidden
 ```
 
-This confirmed that successful authentication alone was not enough to access administrative functionality and that role-based access control prevented privilege escalation.
-
-## Password Hash Validation
-
-Automated testing confirmed that active user records contained `password_hash` fields instead of plaintext `password` fields.
-
-![Password Hash Validation](../screenshots/application-security-password-hashing.png)
+This verified that authentication alone was not enough to access administrative functionality and that role-based access control successfully prevented privilege escalation.
 
 ## Automated Security Validation
 
-The test suite verified:
+The automated test suite verified:
 
 - Secure Flask secret-key configuration
-- Removal of active plaintext password fields
-- Authentication enforcement on a protected endpoint
-- Authorization enforcement on an administrative endpoint
 
-All four required tests passed after the additional hardening changes, confirming that the new controls did not break the original remediations.
+- Removal of active plaintext password fields
+
+- Password verification using PBKDF2-SHA256 hashes
+
+- Authentication enforcement on protected API endpoints
+
+- Authorization enforcement on administrative endpoints
+
+All four required security tests passed after the additional hardening changes, confirming that the new controls functioned correctly without breaking the original remediations.
 
 ![Security Test Results](../screenshots/application-security-test-results.png)
 
