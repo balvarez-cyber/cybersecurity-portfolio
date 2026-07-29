@@ -93,14 +93,30 @@ DB_PASSWORD = os.environ.get(
 )
 ```
 
-The user API keys were also moved to environment-backed values:
+The user API keys are loaded from secure configuration and hashed before being stored in `USERS_DB`:
 
 ```python
-"api_key": os.environ.get(
-    "ADMIN_API_KEY",
-    secrets.token_urlsafe(32)
-)
+def hash_api_key(api_key):
+    return hashlib.sha256(
+        api_key.encode("utf-8")
+    ).hexdigest()
+
+
+USERS_DB = {
+    "admin": {
+        "password_hash": generate_password_hash(
+            "admin123",
+            method="pbkdf2:sha256"
+        ),
+        "role": "admin",
+        "api_key_hash": hash_api_key(
+            os.environ["ADMIN_API_KEY"]
+        )
+    }
+}
 ```
+
+Only the API-key hash is stored. The original API key is provided securely when issued and cannot be recovered from `USERS_DB`.
 
 ### Threat Prevented
 
@@ -189,8 +205,7 @@ if check_password_hash(
 ):
     return jsonify({
         "status": "success",
-        "message": "Authentication successful",
-        "api_key": USERS_DB[username]['api_key']
+        "message": "Authentication successful"
     })
 ```
 
@@ -235,6 +250,12 @@ The original function did not validate any credentials.
 ### After
 
 ```python
+def hash_api_key(api_key):
+    return hashlib.sha256(
+        api_key.encode("utf-8")
+    ).hexdigest()
+
+
 def require_api_key():
     auth_header = request.headers.get(
         "Authorization",
@@ -244,21 +265,25 @@ def require_api_key():
     if not auth_header.startswith("Bearer "):
         return None
 
-    api_key = auth_header.replace(
+    submitted_api_key = auth_header.replace(
         "Bearer ",
         "",
         1
     ).strip()
 
+    submitted_key_hash = hash_api_key(
+        submitted_api_key
+    )
+
     for username, user_data in USERS_DB.items():
-        stored_api_key = user_data.get(
-            "api_key",
+        stored_key_hash = user_data.get(
+            "api_key_hash",
             ""
         )
 
         if hmac.compare_digest(
-            stored_api_key,
-            api_key
+            stored_key_hash,
+            submitted_key_hash
         ):
             return username
 
@@ -267,11 +292,13 @@ def require_api_key():
 
 ### Threat Prevented
 
-Unauthorized access to protected API resources and timing-based comparison weaknesses during API-key validation.
+Unauthorized API access, timing-based comparison weaknesses, and disclosure of usable API keys following a database compromise.
 
 ### Attack Path Closed
 
-Before this change, the authentication function did not identify or validate the requester. The updated function requires the expected `Bearer <api_key>` format, compares the submitted key against stored values, and returns the associated username only when the key is valid.
+Before this change, API keys were stored in plaintext and submitted keys were compared directly with the stored values. An attacker who obtained the user database would immediately receive working API credentials.
+
+The updated implementation stores only API-key hashes. When a requester submits a Bearer key, the application hashes the submitted value and uses `hmac.compare_digest()` to compare the hashes. A database leak therefore does not directly expose usable API keys.
 
 ---
 
@@ -600,7 +627,6 @@ Future improvements would include:
 
 - Replacing demonstration seed passwords with a secure registration or migration process
 - Storing users and credentials in a persistent database
-- Hashing or otherwise securely managing API keys at rest
 - Implementing API-key expiration and rotation
 - Adding rate limiting and account lockout controls
 - Implementing multi-factor authentication
