@@ -1,8 +1,8 @@
 # 🛡️ Cybersecurity Portfolio
 
-Hands-on cybersecurity portfolio showcasing practical work in **security operations, incident response, digital forensics, application security, secure software development, and threat detection**.
+Hands-on cybersecurity portfolio showcasing practical work in **security operations, incident response, digital forensics, application security, secure software development, AI security, and threat detection**.
 
-The projects in this repository demonstrate my ability to investigate security events, analyze technical evidence, remediate application vulnerabilities, validate security controls, and communicate findings through structured technical documentation.
+These projects demonstrate my ability to investigate security events, build and harden applications, validate security controls through testing, and communicate technical findings through clear, structured documentation.
 
 ---
 
