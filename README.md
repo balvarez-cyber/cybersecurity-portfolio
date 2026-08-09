@@ -198,6 +198,17 @@ Investigated a simulated phishing alert by analyzing sender information, domains
 - Structured application logging
 - Automated security testing with Pytest
 
+### AI Application Security
+
+- Python and Flask AI application development
+- OpenAI API integration
+- Local document retrieval and model-context construction
+- Direct and indirect prompt-injection testing
+- Application-controlled tool authorization
+- Vulnerable-versus-hardened security testing
+- LLM threat modeling and OWASP LLM Top 10 mapping
+- Live-model evidence collection and result comparison
+
 ### Digital Forensics
 
 - Windows disk-image analysis
@@ -216,7 +227,7 @@ Investigated a simulated phishing alert by analyzing sender information, domains
 
 **Digital Forensics:** Autopsy • FTK • Windows artifacts • Timeline analysis
 
-**Development and Testing:** Python • Flask • Pytest • Git • GitHub • PowerShell • Bash
+**Development and Testing:** Python • Flask • OpenAI API • REST/JSON • Pytest • Git • GitHub • PowerShell • Bash
 
 **Querying and Analysis:** SPL • KQL • SQL
 
@@ -235,6 +246,9 @@ This portfolio demonstrates my ability to:
 - Identify and remediate application security vulnerabilities.
 - Implement authentication, authorization, logging, and credential-protection controls.
 - Validate security improvements through automated testing.
+- Build and test a multi-component Python and Flask AI application.
+- Evaluate indirect prompt injection using vulnerable and hardened configurations.
+- Keep authorization and security decisions outside probabilistic model behavior.
 - Translate technical findings into clear, actionable recommendations.
 
 ---
@@ -260,13 +274,14 @@ This portfolio demonstrates my ability to:
 
 I am currently expanding my hands-on experience in:
 
-- Incident response and digital forensics
-- Application security
-- Cloud security
-- Detection engineering
-- Threat hunting
-- Penetration testing
 - Python-based security automation
+- Secure AI and LLM application development
+- Application security and automated testing
+- Cloud security and identity fundamentals
+- Infrastructure-as-Code concepts
+- Detection engineering and threat hunting
+- Incident response and digital forensics
+- Penetration testing
 
 ---
 
@@ -274,6 +289,6 @@ I am currently expanding my hands-on experience in:
 
 I am a cybersecurity professional with a background in law enforcement, security operations, incident response, investigations, and technical report writing. That experience strengthened my ability to assess complex situations, preserve evidence, communicate clearly, and make defensible decisions under scrutiny.
 
-I am now applying those investigative skills to cybersecurity through hands-on work in security operations, digital forensics, application security, secure software development, and cloud security.
+I enjoy investigating complex problems, understanding how and why something happened, and turning those findings into practical ways to make systems more secure.
 
-This portfolio continues to grow as I complete new projects, certifications, labs, and technical investigations.
+Building on my experience in law enforcement and security operations, I have been actively expanding my technical skills in cybersecurity, Python, application security, AI security, and secure systems development. This portfolio documents that progression through practical projects, testing, and technical investigations.
