@@ -8,6 +8,27 @@ The projects in this repository demonstrate my ability to investigate security e
 
 ## 🔥 Featured Projects
 
+### 🤖 SentinelDocs — LLM Security Lab
+
+Built a Python and Flask document-support assistant to demonstrate how indirect
+prompt injection can manipulate an AI system and how application-controlled
+security boundaries change the outcome.
+
+**Key accomplishments:**
+
+- Integrated the OpenAI API with local document retrieval and a simulated support-ticket tool.
+- Created vulnerable and hardened modes for controlled security testing.
+- Demonstrated a poisoned vendor document changing a pending review into a false approval.
+- Enforced ticket authorization in deterministic Python application code instead of trusting the model.
+- Preserved live-model evidence and documented the threat model and OWASP LLM Top 10 mapping.
+- Validated application and security behavior with 12 passing Pytest tests.
+
+**Technologies:** Python • Flask • OpenAI API • Prompt Injection • Authorization • Pytest
+
+👉 [View the complete project, source code, and security assessment](https://github.com/balvarez-cyber/sentineldocs-llm-security-lab)
+
+---
+
 ### 🔐 Python Application Security Hardening
 
 Hardened a vulnerable Python Flask application by addressing weaknesses in secrets management, credential storage, API authentication, and authorization.
