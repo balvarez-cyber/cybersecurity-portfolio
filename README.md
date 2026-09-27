@@ -29,6 +29,27 @@ security boundaries change the outcome.
 
 ---
 
+### 🔎 Suspicious Windows Endpoint Investigation — Sysmon and Splunk Cloud
+
+Built a controlled Windows 11 endpoint lab, validated Sysmon telemetry, ingested endpoint events into Splunk Cloud, and reconstructed parent-child process activity from process creation evidence.
+
+**Key accomplishments:**
+
+- Installed and validated Sysmon v15.22 on a Windows 11 ARM64 virtual machine.
+- Ingested two endpoint event exports and isolated Sysmon Event ID 1 process creation records.
+- Reconstructed PowerShell-to-Notepad and PowerShell-to-cmd.exe process chains.
+- Verified a controlled marker-file command through process, parent-process, account, timestamp, and artifact evidence.
+- Distinguished routine PowerShell policy-test files from investigation-relevant activity.
+- Documented scope, confidence, limitations, MITRE ATT&CK context, and a benign lab disposition.
+
+**Technologies:** Windows 11 • Sysmon • Splunk Cloud • SPL • PowerShell • Process Analysis • MITRE ATT&CK
+
+👉 [View the investigation write-up](writeups/splunk-sysmon-endpoint-investigation.md)
+
+📄 [Open the complete case-study report](reports/suspicious-windows-endpoint-investigation.pdf)
+
+---
+
 ### 🔐 Python Application Security Hardening
 
 Hardened a vulnerable Python Flask application by addressing weaknesses in secrets management, credential storage, API authentication, and authorization.
