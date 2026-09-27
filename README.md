@@ -276,7 +276,7 @@ This portfolio demonstrates my ability to:
 
 ## 📚 Education and Professional Development
 
-- Bachelor of Science, Cybersecurity and Information Assurance — Western Governors University, nearing completion
+- Bachelor of Science, Cybersecurity and Information Assurance — Western Governors University
 - ISC2 Systems Security Certified Practitioner (SSCP)
 - CompTIA CySA+
 - CompTIA Security+
@@ -287,7 +287,7 @@ This portfolio demonstrates my ability to:
 - ITIL 4 Foundation
 - Linux Essentials
 
-**Current areas of study:** Cloud security • Penetration testing • Detection engineering • Security automation
+**Current professional development:** Cloud security • Penetration testing • Detection engineering • Security automation
 
 ---
 
