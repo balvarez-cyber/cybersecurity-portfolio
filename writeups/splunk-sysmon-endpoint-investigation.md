@@ -1,10 +1,10 @@
-# 🔎 Suspicious Windows Endpoint Investigation with Sysmon and Splunk
+# 🔎 Controlled Windows Endpoint Telemetry Reconstruction with Sysmon and Splunk
 
 ## 📌 Overview
 
-Built a controlled Windows 11 endpoint laboratory, enabled Sysmon telemetry, ingested exported events into Splunk Cloud, and reconstructed two process chains from process creation evidence.
+Built a controlled Windows 11 endpoint laboratory, enabled Sysmon telemetry, ingested exported events into Splunk Cloud, and reconstructed two deliberately generated process chains from process-creation evidence.
 
-The activity was generated deliberately for telemetry validation. The final disposition was **benign controlled laboratory activity**, not an unauthorized compromise.
+The activity was generated deliberately for telemetry validation. This is a **controlled reconstruction lab**, not a case that began from an unknown production alert. The final disposition was **benign controlled laboratory activity**.
 
 👉 [View the complete investigation report (PDF)](../reports/suspicious-windows-endpoint-investigation.pdf)
 
@@ -17,6 +17,7 @@ The activity was generated deliberately for telemetry validation. The final disp
 - Ingest endpoint events into Splunk Cloud
 - Isolate Sysmon Event ID 1 process creation records
 - Reconstruct parent-child process relationships
+- Test PID reuse as an alternative explanation by comparing `ProcessGuid` values
 - Distinguish relevant evidence from routine PowerShell activity
 - Document findings with defensible scope and limitations
 
@@ -50,18 +51,19 @@ The initial Splunk dataset contained **89 events**, including **53 Sysmon Event 
 1. Validated the uploaded source, host, sourcetype, and event volume.
 2. Filtered for Sysmon Event ID 1 process creation events.
 3. Searched for controlled Notepad execution.
-4. Compared process and parent-process identifiers to reconstruct lineage.
+4. Compared `ProcessGuid` and `ParentProcessGuid` values across both dates to reconstruct lineage without relying on reusable PIDs.
 5. Generated a marker-file test through `cmd.exe` from PowerShell.
 6. Located the command in Splunk and verified its parent process.
-7. Reviewed nearby PowerShell file events and excluded unrelated policy-test files.
+7. Decoded the shared parent GUID's time component and compared it with the Sysmon installation date.
+8. Reviewed nearby PowerShell file events and excluded unrelated policy-test files.
 
-Example investigation search:
+Historical discovery search used against the generic CSV dataset:
 
 ```spl
 source="case_events.csv" host="WIN11-LAB01" sourcetype="csv" "ProcessId: 8536"
 ```
 
-Because the generic CSV export included serialized .NET event-object metadata, the embedded Sysmon `Message` content was treated as the authoritative event narrative.
+Because the generic CSV export included serialized .NET event-object metadata, the embedded Sysmon `Message` content was treated as the authoritative event narrative. This raw-text search found the recorded case; it is not presented as a reusable production detection.
 
 ---
 
@@ -69,7 +71,7 @@ Because the generic CSV export included serialized .NET event-object metadata, t
 
 ```mermaid
 flowchart LR
-    A[PowerShell<br/>PID 8536] --> B[notepad.exe<br/>PID 13424]
+    A[PowerShell<br/>PID 8536<br/>shared ProcessGuid] --> B[notepad.exe<br/>PID 13424]
     B --> C[Packaged Notepad.exe<br/>PID 8768]
     A --> D[cmd.exe<br/>PID 12144]
     D --> E[C:\Users\Public\marker.txt]
@@ -77,16 +79,30 @@ flowchart LR
 
 ### Notepad chain
 
-- PowerShell PID `8536` launched `notepad.exe` PID `13424`.
+- PowerShell process instance `{50d62ed7-0720-6ab0-f507-000000000700}` (PID `8536`) launched `notepad.exe` PID `13424`.
 - Notepad PID `13424` launched the packaged Notepad process PID `8768`.
-- Parent and child identifiers supported the complete two-stage lineage.
+- The packaged process's `ParentProcessGuid` exactly matched the first Notepad event's `ProcessGuid`, supporting the complete two-stage lineage.
+
+![Notepad process and PowerShell parent evidence](../screenshots/splunk-sysmon-endpoint-investigation/notepad-parent-event-evidence.png)
+
+![Packaged Notepad child evidence](../screenshots/splunk-sysmon-endpoint-investigation/notepad-child-event-evidence.png)
 
 ### Marker-file chain
 
-- PowerShell PID `8536` launched `cmd.exe` PID `12144`.
+- The same PowerShell process instance launched `cmd.exe` PID `12144`.
 - The recorded command wrote `CaseStudy` to `C:\Users\Public\marker.txt`.
 - The event ran as `WIN11-LAB01\labadmin` with high integrity.
 - Local verification returned the expected marker-file content.
+
+![cmd.exe marker command and PowerShell parent evidence](../screenshots/splunk-sysmon-endpoint-investigation/cmd-marker-event-evidence.png)
+
+### Parent identity check
+
+The September 25 Notepad event and September 27 `cmd.exe` event record the exact same `ParentProcessGuid`:
+
+`{50d62ed7-0720-6ab0-f507-000000000700}`
+
+That match establishes one shared PowerShell process instance; PID `8536` alone would not be enough because Windows can reuse PIDs. As a reproducibility check, the GUID time fields form hexadecimal `6ab00720`, which converts to approximately `2026-09-20 16:17:36 UTC`. The child GUIDs decode to their recorded event seconds using the same method. The shared parent therefore began before Sysmon was installed on September 25, explaining why its process-creation event is absent. The evidence does not establish why that PowerShell process remained active.
 
 ---
 
@@ -103,7 +119,7 @@ flowchart LR
 
 ## 🧠 Analyst Assessment
 
-The selected events matched the documented lab actions. Executable names such as PowerShell and `cmd.exe` can appear in malicious activity, but names alone do not establish intent. The command lines, account, timestamps, parent-child relationships, and resulting artifact were evaluated together.
+The selected events matched the documented lab actions. Executable names such as PowerShell and `cmd.exe` can appear in malicious activity, but names alone do not establish intent. The command lines, account, timestamps, process GUIDs, parent-child relationships, and resulting artifact were evaluated together. The exact GUID match rules out ordinary PID reuse as the explanation for the shared parent.
 
 Two nearby `__PSScriptPolicyTest_*.ps1` file events were routine PowerShell policy checks. They did not reference the marker path and were excluded from the primary finding.
 
@@ -125,9 +141,16 @@ These mappings describe observable techniques and are included for detection-eng
 ## ⚠️ Limitations
 
 - The investigation used manual CSV snapshots rather than continuous endpoint forwarding.
-- The process creation record for the long-running PowerShell PID was not present in the imported snapshot.
+- The shared PowerShell process began before Sysmon installation, so its Event ID 1 creation record could not have been collected.
+- The evidence confirms the parent identity but not why the PowerShell process remained active across the two dates.
 - No memory image, disk image, packet capture, or enterprise identity telemetry was collected.
 - Conclusions apply only to the selected events and available evidence.
+
+---
+
+## 🚧 Follow-on Detection Project
+
+The next case will start from an alert and use controlled Atomic Red Team activity rather than a known-answer reconstruction. Planned improvements include continuous Sysmon forwarding with the Splunk Universal Forwarder, parsed fields such as `EventCode`, `ParentImage`, and `CommandLine`, reusable field-based SPL searches, a Sigma rule, and a SOC-style disposition with recommended action. Those capabilities are planned for the next project and are not claimed as results of this one.
 
 ---
 
@@ -147,10 +170,10 @@ These mappings describe observable techniques and are included for detection-eng
 
 ## 📊 Conclusion
 
-This project demonstrates an end-to-end endpoint investigation workflow: building the lab, validating telemetry, ingesting events, narrowing a dataset, reconstructing process lineage, excluding unrelated activity, and communicating a supported conclusion.
+This project demonstrates a foundational endpoint telemetry workflow: building the lab, validating telemetry, ingesting events, narrowing a dataset, reconstructing process lineage, testing an alternative explanation, excluding unrelated activity, and communicating a supported conclusion.
 
 The strongest finding was the confirmed chain:
 
-`PowerShell PID 8536 → cmd.exe PID 12144 → C:\Users\Public\marker.txt`
+`PowerShell ProcessGuid {50d62ed7-0720-6ab0-f507-000000000700} → cmd.exe PID 12144 → C:\Users\Public\marker.txt`
 
 The complete evidence index, methodology, limitations, and recommendations are available in the [final report](../reports/suspicious-windows-endpoint-investigation.pdf).

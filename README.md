@@ -29,18 +29,20 @@ security boundaries change the outcome.
 
 ---
 
-### 🔎 Suspicious Windows Endpoint Investigation — Sysmon and Splunk Cloud
+### 🔎 Controlled Windows Endpoint Telemetry Reconstruction — Sysmon and Splunk Cloud
 
-Built a controlled Windows 11 endpoint lab, validated Sysmon telemetry, ingested endpoint events into Splunk Cloud, and reconstructed parent-child process activity from process creation evidence.
+Built a controlled Windows 11 endpoint lab, validated Sysmon telemetry, ingested endpoint events into Splunk Cloud, and reconstructed two deliberately generated process chains from process-creation evidence.
 
 **Key accomplishments:**
 
 - Installed and validated Sysmon v15.22 on a Windows 11 ARM64 virtual machine.
 - Ingested two endpoint event exports and isolated Sysmon Event ID 1 process creation records.
-- Reconstructed PowerShell-to-Notepad and PowerShell-to-cmd.exe process chains.
+- Reconstructed PowerShell-to-Notepad and PowerShell-to-cmd.exe process chains with `ProcessGuid` and `ParentProcessGuid` evidence.
+- Confirmed that both branches shared one PowerShell process instance, ruling out PID reuse as the explanation for PID 8536 appearing across two dates.
+- Established that the shared parent began before Sysmon installation, explaining the absent parent-creation event.
 - Verified a controlled marker-file command through process, parent-process, account, timestamp, and artifact evidence.
 - Distinguished routine PowerShell policy-test files from investigation-relevant activity.
-- Documented scope, confidence, limitations, MITRE ATT&CK context, and a benign lab disposition.
+- Documented the controlled-reconstruction scope, confidence, limitations, MITRE ATT&CK context, and a benign lab disposition without presenting the exercise as an unknown production alert.
 
 **Technologies:** Windows 11 • Sysmon • Splunk Cloud • SPL • PowerShell • Process Analysis • MITRE ATT&CK
 
