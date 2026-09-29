@@ -279,8 +279,10 @@ This portfolio demonstrates my ability to:
 ## 📚 Education and Professional Development
 
 - Bachelor of Science, Cybersecurity and Information Assurance — Western Governors University
+- Bachelor of Science, Criminology — University of La Verne
 - ISC2 Systems Security Certified Practitioner (SSCP)
 - CompTIA CySA+
+- CompTIA PenTest+
 - CompTIA Security+
 - CompTIA Network+
 - CompTIA A+
